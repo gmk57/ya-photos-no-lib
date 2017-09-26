@@ -9,20 +9,20 @@ import android.preference.PreferenceManager;
  */
 
 public class PreferenceConnector {
-    private static final String PREF_ALBUM_TYPE = "albumType";
+    private static final String PREF_ALBUM_TYPE = "albumTypeInt";
     private SharedPreferences mSharedPreferences;
 
     public PreferenceConnector(Context context) {
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    public String getAlbumType() {
-        return mSharedPreferences.getString(PREF_ALBUM_TYPE, YaDownloader.RECENT);
+    public int getAlbumType() {
+        return mSharedPreferences.getInt(PREF_ALBUM_TYPE, 0);
     }
 
-    public void setAlbumType(String albumType) {
+    public void setAlbumType(int albumType) {
         mSharedPreferences.edit()
-                .putString(PREF_ALBUM_TYPE, albumType)
+                .putInt(PREF_ALBUM_TYPE, albumType)
                 .apply();
     }
 }

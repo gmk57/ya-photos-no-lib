@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">YaPhotosNoLib</string>
-    <string name="recent">Recent photos</string>
-    <string name="popular">Popular photos</string>
-    <string name="day">Photos of the day</string>
     <string name="try_again">Try again</string>
     <string name="download_failed">Download failed. Please try again later.\n</string>
+    <string name="album_type_title">Album</string>
+    <string-array name="album_names">
+        <item>Recent photos</item>
+        <item>Popular photos</item>
+        <item>Photos of the day</item>
+    </string-array>
 </resources>

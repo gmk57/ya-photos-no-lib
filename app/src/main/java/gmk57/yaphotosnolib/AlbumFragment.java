@@ -10,13 +10,14 @@ import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Spinner;
 
 import java.util.List;
 
@@ -24,14 +25,15 @@ import java.util.List;
  * Main app fragment to display album thumbnails, with scrolling (endless, if
  * possible)
  */
-public class AlbumFragment extends BaseFragment {
+public class AlbumFragment extends BaseFragment implements AdapterView.OnItemSelectedListener {
     private static final String TAG = "AlbumFragment";
+    private static final String KEY_ALBUM_TYPE = "albumType";
 
     private boolean mFetchRunning;
+    private int mAlbumType = -1;  // Sentinel. Valid values = YaDownloader.ALBUM_PATHS indexes
     private Album mCurrentAlbum = new Album(null);  // To keep current album on rotation
     private FetchAlbumTask mFetchAlbumTask;
     private PhotoAdapter mPhotoAdapter;
-    private PreferenceConnector mPreferenceConnector;
     private ThumbnailDownloadThread<PhotoHolder> mThumbnailDownloadThread;
 
     @Override
@@ -40,8 +42,11 @@ public class AlbumFragment extends BaseFragment {
         setRetainInstance(true);  // To keep image cache in ThumbnailDownloadThread on rotation
         setHasOptionsMenu(true);
 
-        if (mPreferenceConnector == null) {
-            mPreferenceConnector = new PreferenceConnector(getActivity());
+        if (savedInstanceState != null) {
+            mAlbumType = savedInstanceState.getInt(KEY_ALBUM_TYPE, -1);
+        }
+        if (mAlbumType < 0) {
+            mAlbumType = new PreferenceConnector(getActivity()).getAlbumType();
         }
 
         setupProgressState(STATE_LOADING);
@@ -91,23 +96,36 @@ public class AlbumFragment extends BaseFragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_album, menu);
+
+        Spinner albumTypeSpinner = (Spinner) menu.findItem(R.id.album_type_spinner).getActionView();
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(),
+                R.array.album_names, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        albumTypeSpinner.setAdapter(adapter);
+        albumTypeSpinner.setSelection(mAlbumType);
+        albumTypeSpinner.setOnItemSelectedListener(this);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.recent:
-                setupAlbumType(YaDownloader.RECENT);
-                return true;
-            case R.id.popular:
-                setupAlbumType(YaDownloader.POPULAR);
-                return true;
-            case R.id.day:
-                setupAlbumType(YaDownloader.DAY);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        if (position != mAlbumType) {
+            mAlbumType = position;
+            new PreferenceConnector(getActivity()).setAlbumType(position);
+            mThumbnailDownloadThread.clearQueue();
+            mCurrentAlbum = new Album(null);
+            mPhotoAdapter.clear();
+            setupProgressState(STATE_LOADING);
+            startFetchingAlbum();
         }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {/* not needed */}
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(KEY_ALBUM_TYPE, mAlbumType);
     }
 
     @Override
@@ -128,29 +146,11 @@ public class AlbumFragment extends BaseFragment {
     }
 
     /**
-     * Saves album type to shared preferences, cancels downloading thumbnails,
-     * clears current album and starts fetching a new one.
-     *
-     * @param albumType One of YaDownloader's constants: <code>RECENT</code>,
-     *                  <code>POPULAR</code> or <code>DAY</code>.
-     *                  Used to construct URL to fetch album from.
-     */
-    private void setupAlbumType(String albumType) {
-        mPreferenceConnector.setAlbumType(albumType);
-        mThumbnailDownloadThread.clearQueue();
-        mCurrentAlbum = new Album(null);
-        mPhotoAdapter.clear();
-        setupProgressState(STATE_LOADING);
-        startFetchingAlbum();
-    }
-
-    /**
      * Cancels current fetching and starts a new one via <code>FetchAlbumTask</code>.
      * <p>
      * If old album is provided, new album will be built on top of it, appending
      * photos of its <code>getNextPage()</code>.
-     * Otherwise, new album will be built from scratch, according to album type
-     * in shared preferences.
+     * Otherwise, new album will be built from scratch, according to current album type.
      *
      * @param oldAlbumVararg Old album (to append) or empty (to create from scratch)
      */
@@ -227,10 +227,16 @@ public class AlbumFragment extends BaseFragment {
 
     private class FetchAlbumTask extends AsyncTask<Album, Void, Album> {
         private static final String TAG = "FetchAlbumTask";
+        private int mType;
+
+        @Override
+        protected void onPreExecute() {
+            mType = mAlbumType;
+        }
 
         @Override
         protected Album doInBackground(Album... oldAlbumVararg) {
-            return new YaDownloader().fetchAlbum(mPreferenceConnector, oldAlbumVararg);
+            return new YaDownloader().fetchAlbum(mType, oldAlbumVararg);
         }
 
         @Override

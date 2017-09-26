@@ -2,21 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/recent"
-        android:icon="@drawable/ic_recent"
-        android:showAsAction="ifRoom"
-        android:title="@string/recent"/>
-
-    <item
-        android:id="@+id/popular"
-        android:icon="@drawable/ic_popular"
-        android:showAsAction="ifRoom"
-        android:title="@string/popular"/>
-
-    <item
-        android:id="@+id/day"
-        android:icon="@drawable/ic_day"
-        android:showAsAction="ifRoom"
-        android:title="@string/day"/>
+        android:id="@+id/album_type_spinner"
+        android:actionViewClass="android.widget.Spinner"
+        android:showAsAction="always"
+        android:title="@string/album_type_title"/>
 
 </menu>
