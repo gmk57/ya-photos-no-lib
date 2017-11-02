@@ -61,14 +61,11 @@ public abstract class BaseFragment extends Fragment {
 
         mProgressIndicator = view.findViewById(R.id.progress_indicator);
         mErrorLayout = view.findViewById(R.id.error_layout);
-        Button tryAgainButton = (Button) view.findViewById(R.id.try_again_button);
+        Button tryAgainButton = view.findViewById(R.id.try_again_button);
         if (tryAgainButton != null) {
-            tryAgainButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setupProgressState(STATE_LOADING);
-                    tryAgain();
-                }
+            tryAgainButton.setOnClickListener(v -> {
+                setupProgressState(STATE_LOADING);
+                tryAgain();
             });
         }
         setupProgressState(mProgressState);

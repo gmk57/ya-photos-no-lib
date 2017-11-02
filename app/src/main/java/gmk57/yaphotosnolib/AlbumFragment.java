@@ -1,7 +1,6 @@
 package gmk57.yaphotosnolib;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -54,14 +53,10 @@ public class AlbumFragment extends BaseFragment implements AdapterView.OnItemSel
 
         Handler responseHandler = new Handler();
         mThumbnailDownloadThread = new ThumbnailDownloadThread<>(responseHandler);
-        mThumbnailDownloadThread.setThumbnailDownloadListener(
-                new ThumbnailDownloadThread.ThumbnailDownloadListener<PhotoHolder>() {
-                    @Override
-                    public void onThumbnailDownloaded(PhotoHolder photoHolder, Bitmap bitmap) {
-                        Drawable drawable = new BitmapDrawable(getResources(), bitmap);
-                        photoHolder.bindDrawable(drawable);
-                    }
-                });
+        mThumbnailDownloadThread.setThumbnailDownloadListener((photoHolder, bitmap) -> {
+            Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+            photoHolder.bindDrawable(drawable);
+        });
         mThumbnailDownloadThread.start();
         mThumbnailDownloadThread.getLooper();
     }
@@ -70,7 +65,7 @@ public class AlbumFragment extends BaseFragment implements AdapterView.OnItemSel
     public View createView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_album, container, false);
-        GridView gridView = (GridView) view.findViewById(R.id.album_grid_view);
+        GridView gridView = view.findViewById(R.id.album_grid_view);
 
         mPhotoAdapter = new PhotoAdapter(getActivity(), mCurrentAlbum.getPhotos());
         gridView.setAdapter(mPhotoAdapter);
@@ -168,7 +163,7 @@ public class AlbumFragment extends BaseFragment implements AdapterView.OnItemSel
         private Photo mPhoto;
 
         public PhotoHolder(View itemView) {
-            mThumbnailImageView = (ImageView) itemView.findViewById(R.id.thumbnail_image_view);
+            mThumbnailImageView = itemView.findViewById(R.id.thumbnail_image_view);
             itemView.setOnClickListener(this);
             itemView.setTag(this);
         }

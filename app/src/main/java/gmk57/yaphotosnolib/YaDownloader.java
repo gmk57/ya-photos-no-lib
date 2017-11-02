@@ -27,18 +27,16 @@ import java.util.TimeZone;
  * Does not have any internal state.
  */
 public class YaDownloader {
-    public static final String[] ALBUM_PATHS = {"recent", "top", "podhistory"};
+    private static final String[] ALBUM_PATHS = {"recent", "top", "podhistory"};
 
     private static final String TAG = "YaDownloader";
 
     public byte[] downloadBytes(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        InputStream in = null;
 
-        try {
-            in = connection.getInputStream();
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             InputStream in = connection.getInputStream()) {
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 throw new IOException(connection.getResponseMessage() + ": with " + urlString);
             }
@@ -52,12 +50,6 @@ public class YaDownloader {
             return out.toByteArray();
 
         } finally {
-            try {
-                if (in != null) in.close();
-            } catch (IOException e) {/*closing quietly*/}
-            try {
-                out.close();
-            } catch (IOException e) {/*closing quietly*/}
             connection.disconnect();
         }
     }

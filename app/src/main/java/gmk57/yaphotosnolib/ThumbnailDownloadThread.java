@@ -121,16 +121,13 @@ public class ThumbnailDownloadThread<T> extends HandlerThread {
             }
             final Bitmap bitmap = downloadImage(url);
 
-            mResponseHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (!url.equals(mRequestMap.get(target)) || mHasQuit) {
-                        return;  // Another URL was requested for target or we're dying
-                    }
-
-                    mRequestMap.remove(target);  // This target is finally fed up
-                    mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
+            mResponseHandler.post(() -> {
+                if (!url.equals(mRequestMap.get(target)) || mHasQuit) {
+                    return;  // Another URL was requested for target or we're dying
                 }
+
+                mRequestMap.remove(target);  // This target is finally fed up
+                mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
             });
         } catch (IOException e) {
             Log.e(TAG, "Error loading thumbnail: " + e);

@@ -61,13 +61,10 @@ public class PhotoFragment extends BaseFragment implements LoaderManager.LoaderC
     public View createView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_photo, container, false);
-        mImageView = (ImageView) view.findViewById(R.id.fullscreen_image_view);
-        mImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mUiVisible = !mUiVisible;
-                setupUiVisibility();
-            }
+        mImageView = view.findViewById(R.id.fullscreen_image_view);
+        mImageView.setOnClickListener(v -> {
+            mUiVisible = !mUiVisible;
+            setupUiVisibility();
         });
 
         return view;
